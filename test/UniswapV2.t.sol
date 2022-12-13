@@ -37,28 +37,40 @@ contract UniswapV2Test is Test {
         assertEq(balanceOfDai, 100 ether);
     }
 
-    function testAddLP() public {
+    function testSwap() public {
         vm.startPrank(owner);
         uint256 ONE_ETH = 1 ether;
+        uint256 TEN_ETH = 10 ether;
         uint256 ONE_HUNDRED_ETH = 100 ether;
+        uint256 MAX_UINT256 = type(uint256).max;
 
         dai = new TestERC20("DAI", "DAI");
         usdc = new TestERC20("USDC", "USDC");
 
-        dai.approve(address(router), ONE_ETH);
-        usdc.approve(address(router), ONE_ETH);
+        dai.approve(address(router), type(uint256).max);
+        usdc.approve(address(router), type(uint256).max);
 
         uint256 daiAllowance = dai.allowance(owner, address(router));
         uint256 usdcAllowance = usdc.allowance(owner, address(router));
-        assertEq(daiAllowance, ONE_ETH);
-        assertEq(usdcAllowance, ONE_ETH);
+        assertEq(daiAllowance, MAX_UINT256);
+        assertEq(usdcAllowance, MAX_UINT256);
 
-        router.addLiquidity(address(dai), address(usdc), ONE_ETH, ONE_ETH, 0, 0, owner, block.timestamp + 1000);
+        router.addLiquidity(address(dai), address(usdc), TEN_ETH, TEN_ETH, 0, 0, owner, block.timestamp + 1000);
 
         uint256 daiBalance = dai.balanceOf(owner);
         uint256 usdcBalance = usdc.balanceOf(owner);
-        assertEq(daiBalance, ONE_HUNDRED_ETH - ONE_ETH);
-        assertEq(usdcBalance, ONE_HUNDRED_ETH - ONE_ETH);
+        assertEq(daiBalance, ONE_HUNDRED_ETH - TEN_ETH);
+        assertEq(usdcBalance, ONE_HUNDRED_ETH - TEN_ETH);
+
+        address[] memory path = new address[](2);
+        path[0] = address(dai);
+        path[1] = address(usdc);
+
+        uint256[] memory amounts = router.swapExactTokensForTokens(ONE_ETH, 0, path, owner, block.timestamp + 1000);
+        daiBalance = dai.balanceOf(owner);
+        usdcBalance = usdc.balanceOf(owner);
+        assertEq(daiBalance, ONE_HUNDRED_ETH - TEN_ETH - ONE_ETH);
+        assertEq(usdcBalance, ONE_HUNDRED_ETH - TEN_ETH + amounts[1]);
 
     }
 }
