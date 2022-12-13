@@ -3,14 +3,14 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../src/test/WETH9.sol";
-import "../src/test/ERC20.sol";
+import "../src/test/TestERC20.sol";
 import "../src/UniswapV2Factory.sol";
 import "../src/UniswapV2Router02.sol";
 
 contract UniswapV2Test is Test {
     WETH9 public weth;
-    ERC20 public dai;
-    ERC20 public usdc;
+    TestERC20 public dai;
+    TestERC20 public usdc;
 
     UniswapV2Factory public factory;
     UniswapV2Router02 public router;
@@ -32,18 +32,18 @@ contract UniswapV2Test is Test {
 
     function testMintToken() public {
         vm.startPrank(owner);
-        dai = new ERC20(100);
+        dai = new TestERC20("DAI", "DAI");
         uint256 balanceOfDai = dai.balanceOf(owner);
-        assertEq(balanceOfDai, 100);
+        assertEq(balanceOfDai, 100 ether);
     }
 
     function testAddLP() public {
         vm.startPrank(owner);
         uint256 ONE_ETH = 1 ether;
-        uint256 TEN_ETH = 10 ether;
+        uint256 ONE_HUNDRED_ETH = 100 ether;
 
-        dai = new ERC20(TEN_ETH);
-        usdc = new ERC20(TEN_ETH);
+        dai = new TestERC20("DAI", "DAI");
+        usdc = new TestERC20("USDC", "USDC");
 
         dai.approve(address(router), ONE_ETH);
         usdc.approve(address(router), ONE_ETH);
@@ -57,8 +57,8 @@ contract UniswapV2Test is Test {
 
         uint256 daiBalance = dai.balanceOf(owner);
         uint256 usdcBalance = usdc.balanceOf(owner);
-        assertEq(daiBalance, TEN_ETH - ONE_ETH);
-        assertEq(usdcBalance, TEN_ETH - ONE_ETH);
+        assertEq(daiBalance, ONE_HUNDRED_ETH - ONE_ETH);
+        assertEq(usdcBalance, ONE_HUNDRED_ETH - ONE_ETH);
 
     }
 }
