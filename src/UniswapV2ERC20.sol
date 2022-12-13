@@ -1,4 +1,4 @@
-pragma solidity ^0.6.6;
+pragma solidity ^0.8.13;
 
 import './interfaces/IUniswapV2ERC20.sol';
 import './libraries/SafeMath.sol';
@@ -18,7 +18,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     bytes32 public override constant PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
     mapping(address => uint) public override nonces;
 
-    constructor() public {
+    constructor() {
         uint chainId;
         assembly {
             chainId := chainid()
