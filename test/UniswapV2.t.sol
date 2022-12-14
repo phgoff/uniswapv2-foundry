@@ -47,6 +47,8 @@ contract UniswapV2Test is Test {
         dai = new TestERC20("DAI", "DAI");
         usdc = new TestERC20("USDC", "USDC");
 
+        // ----add liquidity----
+
         dai.approve(address(router), type(uint256).max);
         usdc.approve(address(router), type(uint256).max);
 
@@ -62,15 +64,37 @@ contract UniswapV2Test is Test {
         assertEq(daiBalance, ONE_HUNDRED_ETH - TEN_ETH);
         assertEq(usdcBalance, ONE_HUNDRED_ETH - TEN_ETH);
 
+         // ----swap token----
+
         address[] memory path = new address[](2);
         path[0] = address(dai);
         path[1] = address(usdc);
-
         uint256[] memory amounts = router.swapExactTokensForTokens(ONE_ETH, 0, path, owner, block.timestamp + 1000);
         daiBalance = dai.balanceOf(owner);
         usdcBalance = usdc.balanceOf(owner);
         assertEq(daiBalance, ONE_HUNDRED_ETH - TEN_ETH - ONE_ETH);
         assertEq(usdcBalance, ONE_HUNDRED_ETH - TEN_ETH + amounts[1]);
 
+        address pair = factory.getPair(address(dai), address(usdc));
+        // check liquidity in pool
+        (uint256 daiReserve, uint256 usdcReserve, ) = UniswapV2Pair(pair).getReserves();
+        assertEq(daiReserve, TEN_ETH + ONE_ETH);
+        assertEq(usdcReserve, TEN_ETH - amounts[1]);
+
+        // ----remove liquidity----
+
+        // get liquidity
+        uint256 liquidity = UniswapV2Pair(pair).balanceOf(owner);
+
+        // approve liquidity to router
+        UniswapV2Pair(pair).approve(address(router), liquidity);
+
+        router.removeLiquidity(address(dai), address(usdc), liquidity, 0, 0, owner, block.timestamp + 1000);
+       
+        // check liquidity in pool
+        (daiReserve, usdcReserve, ) = UniswapV2Pair(pair).getReserves();
+        // check liquidity of owner
+        liquidity = UniswapV2Pair(pair).balanceOf(owner);
+        assertEq(liquidity, 0);
     }
 }
